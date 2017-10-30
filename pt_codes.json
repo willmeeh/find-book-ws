@@ -1,0 +1,7 @@
+{
+    "ERROR_ID_INVALIDO": {
+        "TYPE": "ERROR",
+        "COD": "ERROR_ID_INVALIDO",
+        "MSG": "Id não é válido."
+    }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "facefarm_ws",
+  "version": "1.0.0",
+  "description": "Web Service para o projeto da disciplina de projeto e desenvolvimento de software.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arthurhoch/FaceFarm_ws.git"
+  },
+  "keywords": [
+    "Facefarm",
+    "FF"
+  ],
+  "author": "Arthur Hoch, William Mehler e Leonardo Nunes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arthurhoch/FaceFarm_ws/issues"
+  },
+  "homepage": "https://github.com/arthurhoch/FaceFarm_ws#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.17.2",
+    "express": "^4.15.4",
+    "jsonwebtoken": "^7.4.2",
+    "lodash": "^4.17.4",
+    "mongodb": "^2.2.31",
+    "mongoose": "^4.11.7",
+    "request": "^2.81.0",
+    "require-dir": "^0.3.2",
+    "validator": "^8.0.0"
+  },
+  "devDependencies": {
+    "expect": "^1.20.2",
+    "mocha": "^3.5.0",
+    "nodemon": "^1.11.0",
+    "supertest": "^3.0.0"
+  }
+}
