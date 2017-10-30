@@ -1,20 +1,19 @@
 {
-  "name": "facefarm_ws",
+  "name": "find-book-ws",
   "version": "1.0.0",
-  "description": "Web Service para o projeto da disciplina de projeto e desenvolvimento de software.",
+  "description": "Web service for the discipline 'Programação para dispositivos móveis' of the college of computer science - UNISC",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arthurhoch/FaceFarm_ws.git"
+    "url": "git+https://github.com/willmeeh/find-book-ws.git"
   },
   "keywords": [
-    "Facefarm",
-    "FF"
+    "FindBook"
   ],
-  "author": "Arthur Hoch, William Mehler e Leonardo Nunes",
+  "author": "William Mehler",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/arthurhoch/FaceFarm_ws/issues"
