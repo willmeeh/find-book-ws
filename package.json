@@ -29,7 +29,6 @@
     "mongodb": "^2.2.31",
     "mongoose": "^4.11.7",
     "request": "^2.81.0",
-    "require-dir": "^0.3.2",
     "validator": "^8.0.0"
   },
   "devDependencies": {
