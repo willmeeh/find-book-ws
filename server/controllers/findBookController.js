@@ -5,85 +5,124 @@ var iconv = require('iconv-lite');
 const request = require('request');
 
 const findBook = (req, res) => {
-    var id = req.params.id;
+    var param = req.params.param;
+    paramToInt = parseInt(param);
 
-    var bookName = req.params.bookName;
-    console.log(bookName);
+    console.log(param);
+    if (paramToInt && typeof paramToInt === 'number' && paramToInt > 0) {
+        getBook(paramToInt).then((jsonResponse) => {
+            res.send(jsonResponse);
+        }).catch((e) => {
+            res.send(e);
+        });
+    } else if (typeof param === 'string') {
+        getBook(param).then((jsonResponse) => {
+            res.send(jsonResponse);
+        }).catch((e) => {
+            res.send(e);
+        });
+    } else {
+        res.send({
+            ERRO: 'Parâmetro informado inválido'
+        });
+    }
+};
 
-    const libUrl = `https://biblio.unisc.br/biblioteca/index.php?rs=ajax_resultados&rst=&rsrnd=1509817429993&rsargs[]=20&rsargs[]=0&rsargs[]=L&rsargs[]=${bookName}&rsargs[]=1%2C&rsargs[]=1%2C&rsargs[]=palavra&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=obra&rsargs[]=59fdfc1cd77ef&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=`;
+const getBook = (param) => {
+    return new Promise((resolve, reject) => {
 
-    request(libUrl, {
-        encoding: null
-    }, function (error, resp, body) {
-        if (error) {
-            console.log(libUrl + " : " + error);
-        } else {
+        const libUrl = `https://biblio.unisc.br/biblioteca/index.php?rs=ajax_resultados&rst=&rsrnd=1509817429993&rsargs[]=50&rsargs[]=0&rsargs[]=L&rsargs[]=${param}&rsargs[]=1%2C&rsargs[]=1%2C&rsargs[]=palavra&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=obra&rsargs[]=59fdfc1cd77ef&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=`;
 
-            let html = iconv.decode(new Buffer(body), "ISO-8859-1");
-            // let html = iconv.decode(new Buffer(body), "ISO-8859-1").toString().replace(/\s/g, '');
-            fs.writeFileSync('response.txt', html);
-            let obraIndexFrom = html.search('( Livro )');
-            html = html.substring(obraIndexFrom + 54, html.length);
-            let finalObraIndex = html.search('table class');
-            let obra = html.substring(0, finalObraIndex - 88);
-            obra = cleanHtml(obra);
+        request(libUrl, {
+            encoding: null
+        }, function (error, resp, body) {
+            if (error) {
+                console.log(libUrl + " : " + error);
+                return reject(error);
+            } else {
+                let html = iconv.decode(new Buffer(body), "ISO-8859-1");
 
+                const callback = (result) => {
+                    return resolve(result);
+                }
+                // Caso o parametro seja um inteiro, filtra pelo acervo
+                if (typeof paramToInt === 'number' && paramToInt > 0) {
+                    mineHtml(html, param, callback);
+                } else {
+                    mineHtml(html, undefined, callback);
+                }
+            }
+        });
+    });
+};
 
-            let nChamadaIndex = html.search('chamada:<strong>&nbsp;')
-            html = html.substring(nChamadaIndex + 22, html.length);
-            let nChamadaIndexEnd = html.search('</strong>')
-            let nChamada = html.substring(0, nChamadaIndexEnd);
+const mineHtml = (html, id, callback) => {
 
-            let acervoIndex = html.search('Acervo: </br>')
-            html = html.substring(acervoIndex + 13, html.length);
-            let acervoIndexEnd = html.search('</div>')
-            let acervo = html.substring(0, acervoIndexEnd);
-            if (acervo) {
-                const detalhesExemplarURL = `https://biblio.unisc.br/biblioteca/index.php?rs=ajax_dados_exemplar&rst=&rsrnd=1509835765109&rsargs[]=${acervo}&rsargs[]=%2C`;
+    // let html = iconv.decode(new Buffer(body), "ISO-8859-1").toString().replace(/\s/g, '');
+    fs.writeFileSync('response.txt', html);
+    let obraIndexFrom = html.search('( Livro )');
+    html = html.substring(obraIndexFrom + 54, html.length);
+    let finalObraIndex = html.search('table class');
+    let obra = html.substring(0, finalObraIndex - 88);
+    obra = cleanHtml(obra);
 
-                request(detalhesExemplarURL, {
-                    encoding: null
-                }, function (error, resp, bodyExemplares) {
-                    if (error) {
-                        console.log(libUrl + " : " + error);
-                    } else {
+    let nChamadaIndex = html.search('chamada:<strong>&nbsp;')
+    html = html.substring(nChamadaIndex + 22, html.length);
+    let nChamadaIndexEnd = html.search('</strong>')
+    let nChamada = html.substring(0, nChamadaIndexEnd);
 
-                        let exemplaresHtml = iconv.decode(new Buffer(bodyExemplares), "ISO-8859-1");
-                        fs.writeFileSync('response.txt', exemplaresHtml);
-                        let exemplaresIndex = exemplaresHtml.search('txt_acervo10')
-                        exemplaresHtml = exemplaresHtml.substring(exemplaresIndex + 15, exemplaresHtml.length);
-                        let exemplaresIndexEnd = exemplaresHtml.search('</font>')
-                        let exemplares = exemplaresHtml.substring(0, exemplaresIndexEnd);
-                        exemplares = parseInt(exemplares);
-                        if (exemplares && typeof exemplares === 'number') {
-                            if (exemplares > 0) {
-                                return res.send({
-                                    obra,
-                                    acervo,
-                                    nChamada,
-                                    exemplares
-                                });
-                            } else {
-                                return res.send({
-                                    'INFO': 'Exemplares indisponíveis'
-                                });
-                            }
+    let acervoIndex = html.search('Acervo: </br>')
+    html = html.substring(acervoIndex + 13, html.length);
+    let acervoIndexEnd = html.search('</div>')
+    let acervo = parseInt(html.substring(0, acervoIndexEnd));
+    if (acervo && typeof acervo === 'number') {
+        if (id === acervo || id === undefined) {
+
+            const detalhesExemplarURL = `https://biblio.unisc.br/biblioteca/index.php?rs=ajax_dados_exemplar&rst=&rsrnd=1509835765109&rsargs[]=${acervo}&rsargs[]=%2C`;
+
+            request(detalhesExemplarURL, {
+                encoding: null
+            }, function (error, resp, bodyExemplares) {
+                if (error) {
+                    console.log(libUrl + " : " + error);
+                    return callback(error);
+                } else {
+
+                    let exemplaresHtml = iconv.decode(new Buffer(bodyExemplares), "ISO-8859-1");
+                    let exemplaresIndex = exemplaresHtml.search('txt_acervo10')
+                    exemplaresHtml = exemplaresHtml.substring(exemplaresIndex + 15, exemplaresHtml.length);
+                    let exemplaresIndexEnd = exemplaresHtml.search('</font>')
+                    let exemplares = exemplaresHtml.substring(0, exemplaresIndexEnd);
+                    exemplares = parseInt(exemplares);
+                    if (exemplares && typeof exemplares === 'number') {
+                        if (exemplares > 0) {
+                            return callback({
+                                obra,
+                                acervo,
+                                nChamada,
+                                exemplares
+                            });
                         } else {
-                            return res.send({
-                                'ERRO': 'Ocorreu algum erro durante o processo de mineração de texto'
+                            return callback({
+                                'INFO': 'Exemplares indisponíveis'
                             });
                         }
+                    } else {
+                        return callback({
+                            'ERRO': 'Ocorreu algum erro durante o processo de mineração de texto'
+                        });
                     }
-                });
-            } else {
-                return res.send({
-                    'ERRO': 'Acervo não encontrado'
-                });
-            }
+                }
+            });
+        } else {
+            mineHtml(html, id, callback);
         }
-    });
-
-};
+    } else {
+        return callback({
+            'ERRO': 'Livro não encontrado'
+        });
+    }
+}
 
 const cleanHtml = (html) => {
     //Remove as tags html
