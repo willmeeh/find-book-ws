@@ -99,18 +99,18 @@ const mineHtml = (html, id, callback, arr) => {
                     return callback(error);
                 } else {
 
-                    let exemplaresHtml = iconv.decode(new Buffer(bodyExemplares), "ISO-8859-1");
-                    let exemplaresIndex = exemplaresHtml.search('txt_acervo10')
-                    exemplaresHtml = exemplaresHtml.substring(exemplaresIndex + 15, exemplaresHtml.length);
-                    let exemplaresIndexEnd = exemplaresHtml.search('</font>')
-                    let exemplares = exemplaresHtml.substring(0, exemplaresIndexEnd);
-                    exemplares = parseInt(exemplares);
-                    if (exemplares && typeof exemplares === 'number') {
+                    let exemplaresDisponiveisHtml = iconv.decode(new Buffer(bodyExemplares), "ISO-8859-1");
+                    let exemplaresIndex = exemplaresDisponiveisHtml.search('txt_acervo10')
+                    exemplaresDisponiveisHtml = exemplaresDisponiveisHtml.substring(exemplaresIndex + 15, exemplaresDisponiveisHtml.length);
+                    let exemplaresIndexEnd = exemplaresDisponiveisHtml.search('</font>')
+                    let exemplaresDisponiveis = exemplaresDisponiveisHtml.substring(0, exemplaresIndexEnd);
+                    exemplaresDisponiveis = parseInt(exemplaresDisponiveis);
+                    if (exemplaresDisponiveis && typeof exemplaresDisponiveis === 'number') {
                         arr.push({
                             obra,
                             acervo,
                             nChamada,
-                            exemplares
+                            exemplaresDisponiveis
                         })
                         mineHtml(html, id, callback, arr);
                         
