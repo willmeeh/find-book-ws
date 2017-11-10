@@ -6,18 +6,20 @@ const request = require('request');
 
 const findBook = (req, res) => {
     var param = req.params.param;
-    paramToInt = parseInt(param);
+    var paramToInt = parseInt(param);
+
+    var count = req.params.count;
 
     console.log(param);
     if (paramToInt && typeof paramToInt === 'number' && paramToInt > 0) {
-        getBook(paramToInt).then((jsonResponse) => {
-            res.send(jsonResponse);
+        getBook(paramToInt, count).then((jsonResponse) => {
+            res.send({ jsonResponse });
         }).catch((e) => {
             res.send(e);
         });
     } else if (typeof param === 'string') {
-        getBook(param).then((jsonResponse) => {
-            res.send(jsonResponse);
+        getBook(param, count).then((jsonResponse) => {
+            res.send({ jsonResponse });
         }).catch((e) => {
             res.send(e);
         });
@@ -28,10 +30,14 @@ const findBook = (req, res) => {
     }
 };
 
-const getBook = (param) => {
+const getBook = (param, count) => {
     return new Promise((resolve, reject) => {
 
-        const libUrl = `https://biblio.unisc.br/biblioteca/index.php?rs=ajax_resultados&rst=&rsrnd=1509817429993&rsargs[]=50&rsargs[]=0&rsargs[]=L&rsargs[]=${param}&rsargs[]=1%2C&rsargs[]=1%2C&rsargs[]=palavra&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=obra&rsargs[]=59fdfc1cd77ef&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=`;
+        if (!count) {
+            count = 20;
+        }
+
+        const libUrl = `https://biblio.unisc.br/biblioteca/index.php?rs=ajax_resultados&rst=&rsrnd=1509817429993&rsargs[]=${count}&rsargs[]=0&rsargs[]=L&rsargs[]=${param}&rsargs[]=1%2C&rsargs[]=1%2C&rsargs[]=palavra&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=obra&rsargs[]=59fdfc1cd77ef&rsargs[]=&rsargs[]=&rsargs[]=&rsargs[]=`;
 
         request(libUrl, {
             encoding: null
@@ -56,7 +62,11 @@ const getBook = (param) => {
     });
 };
 
-const mineHtml = (html, id, callback) => {
+const mineHtml = (html, id, callback, arr) => {
+
+    if (!arr) {
+        arr = [];
+    }
 
     // let html = iconv.decode(new Buffer(body), "ISO-8859-1").toString().replace(/\s/g, '');
     fs.writeFileSync('response.txt', html);
@@ -75,6 +85,7 @@ const mineHtml = (html, id, callback) => {
     html = html.substring(acervoIndex + 13, html.length);
     let acervoIndexEnd = html.search('</div>')
     let acervo = parseInt(html.substring(0, acervoIndexEnd));
+
     if (acervo && typeof acervo === 'number') {
         if (id === acervo || id === undefined) {
 
@@ -95,22 +106,16 @@ const mineHtml = (html, id, callback) => {
                     let exemplares = exemplaresHtml.substring(0, exemplaresIndexEnd);
                     exemplares = parseInt(exemplares);
                     if (exemplares && typeof exemplares === 'number') {
-                        if (exemplares > 0) {
-                            return callback({
-                                obra,
-                                acervo,
-                                nChamada,
-                                exemplares
-                            });
-                        } else {
-                            return callback({
-                                'INFO': 'Exemplares indisponíveis'
-                            });
-                        }
+                        arr.push({
+                            obra,
+                            acervo,
+                            nChamada,
+                            exemplares
+                        })
+                        mineHtml(html, id, callback, arr);
+                        
                     } else {
-                        return callback({
-                            'ERRO': 'Ocorreu algum erro durante o processo de mineração de texto'
-                        });
+                        return callback(arr);
                     }
                 }
             });
@@ -118,9 +123,7 @@ const mineHtml = (html, id, callback) => {
             mineHtml(html, id, callback);
         }
     } else {
-        return callback({
-            'ERRO': 'Livro não encontrado'
-        });
+        return callback(arr);
     }
 }
 
