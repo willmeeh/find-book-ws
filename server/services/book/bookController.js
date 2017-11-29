@@ -4,7 +4,7 @@ var encoding = require("encoding");
 var iconv = require('iconv-lite');
 const request = require('request');
 
-const findBook = (req, res) => {
+const find = (req, res) => {
     var param = req.params.param;
     var paramToInt = parseInt(param);
 
@@ -135,5 +135,5 @@ const cleanHtml = (html) => {
 }
 
 module.exports = {
-    findBook,
+    find,
 };
